@@ -131,6 +131,10 @@ This opens VS Code on the Windows side but everything — terminal, file system,
 | Svelte | `svelte.svelte-vscode` | Svelte language support |
 | Even Better TOML | `tamasfe.even-better-toml` | Cargo.toml syntax highlighting |
 | ESLint | `dbaeumer.vscode-eslint` | TypeScript linting |
+| TypeScript Vue Plugin | `vue.volar` | Better TS support in .svelte files |
+| Thunder Client | `rangav.vscode-thunder-client` | Test your REST API endpoints without leaving VS Code |
+| GitLens | `eamodio.gitlens` | Enhanced git history and blame |
+| Error Lens | `usernamehw.errorlens` | Inline error messages in the editor |
 
 ---
 
