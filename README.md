@@ -134,7 +134,16 @@ This opens VS Code on the Windows side but everything — terminal, file system,
 
 ---
 
-## 9. Dev workflow
+## 9. Git Repo Setup
+
+I suggest using [GitHub Desktop](https://desktop.github.com/download/) for version control.  Once its installed and logged in you should be able to clone the repo and then set the local directory path to the WSL directory and then where you want it from there. 
+```
+\\wsl.localhost\Ubuntu\home\your-username
+```
+
+---
+
+## 10. Dev workflow
 
 During development, run the backend and frontend simultaneously in two terminal tabs.
 
