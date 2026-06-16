@@ -1,0 +1,14 @@
+# Rust
+server/target/
+
+# Node
+client/node_modules/
+client/dist/
+plugins/dnd5e/node_modules/
+
+# SQLite world files (worlds are user data, not source)
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
