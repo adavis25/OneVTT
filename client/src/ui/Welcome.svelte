@@ -1,13 +1,17 @@
 <script lang="ts">
   type Role = 'gm' | 'player';
 
+  let { onEnter } = $props();
   let role = $state<Role>('gm');
   let worldName = $state('');
 
   function handleEnter() {
     // stub — will wire up later
     console.log('Enter world:', { role, worldName });
+    onEnter();
   }
+
+  
 </script>
 
 <div class="w-full min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
