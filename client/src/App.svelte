@@ -3,16 +3,10 @@
   import { getPath, navigate } from './state/router.svelte';
 
   import Canvas from './canvas/Canvas.svelte';
-  import Chat from './ui/Chat.svelte';
   import Welcome from './ui/Welcome.svelte';
 
   const path = $derived(getPath());
   
-  let inGame = $state(false);
-
-  function onEnter() {
-    inGame = true;
-  }
 </script>
 
 <div>
