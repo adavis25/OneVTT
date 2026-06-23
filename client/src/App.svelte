@@ -1,9 +1,13 @@
 <script lang="ts">
   import './app.css';
+  import { getPath, navigate } from './state/router.svelte';
+
   import Canvas from './canvas/Canvas.svelte';
   import Chat from './ui/Chat.svelte';
   import Welcome from './ui/Welcome.svelte';
 
+  const path = $derived(getPath());
+  
   let inGame = $state(false);
 
   function onEnter() {
@@ -11,16 +15,15 @@
   }
 </script>
 
-{#if inGame}
-  <div class="app">
+<div>
+  {#if path === '/'}
+    <Welcome onEnter={() => navigate('/game')} />
+  {:else if path === '/game'}
     <Canvas />
-    <div class="ui-layer">
-      <Chat />
-    </div>
-  </div>
-{:else}
-  <Welcome onEnter={() => onEnter()} />
-{/if}
+  {:else if path === '/settings'}
+    <!-- Settings placeholder -->
+  {/if}
+</div>
 
 <style>
   .app {
