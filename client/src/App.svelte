@@ -1,22 +1,39 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { getConnection } from './state/connection.svelte';
-  import Canvas from './canvas/Canvas.svelte';
-  import Chat from './ui/Chat.svelte';
+  import './app.css';
+  import { getPath, navigate } from './state/router.svelte';
 
-  onMount(() => {
-    getConnection().connect();
-  });
+  import Canvas from './canvas/Canvas.svelte';
+  import Welcome from './ui/Welcome.svelte';
+
+  const path = $derived(getPath());
+  
 </script>
 
-<main>
-  <Canvas />
-  <Chat />
-</main>
+<div>
+  {#if path === '/'}
+    <Welcome onEnter={() => navigate('/game')} />
+  {:else if path === '/game'}
+    <Canvas />
+  {:else if path === '/settings'}
+    <!-- Settings placeholder -->
+  {/if}
+</div>
 
 <style>
-  main {
-    display: flex;
+  .app {
+    position: relative;
+    width: 100vw;
     height: 100vh;
+    overflow: hidden;
+  }
+
+  .ui-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .ui-layer :global(*) {
+    pointer-events: auto;
   }
 </style>

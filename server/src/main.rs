@@ -9,6 +9,7 @@ use std::env;
 use std::sync::Arc;
 use tokio::sync::broadcast;
 use tracing::info;
+use tower_http::services::{ServeDir, ServeFile};
 
 #[tokio::main]
 async fn main() {
@@ -38,6 +39,11 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(handlers::health::health_handler))
         .route("/ws", get(handlers::ws::ws_handler))
+        .nest_service(
+            "/",
+            ServeDir::new("../client/dist")
+                .fallback(ServeFile::new("../client/dist/index.html")),
+        )
         .with_state(state);
 
     let addr = format!("0.0.0.0:{}", port);
