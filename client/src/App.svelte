@@ -2,8 +2,8 @@
   import './app.css';
   import { getPath, navigate } from './state/router.svelte';
 
-  import Canvas from './canvas/Canvas.svelte';
-  import Welcome from './ui/Welcome.svelte';
+  import Canvas from '../../client-new/src/lib/renderer/Canvas.svelte';
+  import Welcome from '../../client-new/src/lib/ui/components/Welcome.svelte';
 
   const path = $derived(getPath());
   
