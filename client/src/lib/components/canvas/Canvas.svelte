@@ -29,8 +29,8 @@
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
 
-    // Basic grid
-    const grid = new THREE.GridHelper(20, 20, 0x444444, 0x333333);
+    // Basic grid — 200 units, 1 unit per cell, plenty of room to pan
+    const grid = new THREE.GridHelper(200, 200, 0x444444, 0x333333);
     grid.rotation.x = Math.PI / 2;
     scene.add(grid);
 
@@ -44,18 +44,23 @@
 
     // Handle resize
     function onResize() {
-      const aspect = container.clientWidth / container.clientHeight;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      const aspect = w / h;
       camera.left = -frustum * aspect;
       camera.right = frustum * aspect;
+      camera.top = frustum;
+      camera.bottom = -frustum;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setSize(w, h);
     }
-    window.addEventListener('resize', onResize);
+    const resizeObserver = new ResizeObserver(onResize);
+    resizeObserver.observe(container);
 
     // Cleanup
     return () => {
       cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', onResize);
+      resizeObserver.disconnect();
       renderer.dispose();
       container.removeChild(renderer.domElement);
     };
