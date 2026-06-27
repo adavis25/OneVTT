@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Welcome from '$lib/ui/components/Welcome.svelte';
+  import Welcome from './Welcome.svelte';
 </script>
 
 <Welcome />
