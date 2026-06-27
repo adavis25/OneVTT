@@ -14,6 +14,8 @@ pub async fn ws_handler(
 }
 
 async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
+    info!("Client connected");
+
     let tx = state.tx.clone();
     let mut rx = tx.subscribe();
 
