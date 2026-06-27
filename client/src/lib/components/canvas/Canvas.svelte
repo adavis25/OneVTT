@@ -34,6 +34,43 @@
     grid.rotation.x = Math.PI / 2;
     scene.add(grid);
 
+    // Panning
+    const canvas = renderer.domElement;
+    canvas.style.cursor = 'grab';
+    let isDragging = false;
+    let lastPointerX = 0;
+    let lastPointerY = 0;
+
+    function onPointerDown(e: PointerEvent) {
+      isDragging = true;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+      canvas.style.cursor = 'grabbing';
+    }
+
+    function onPointerMove(e: PointerEvent) {
+      if (!isDragging) return;
+      const dx = e.clientX - lastPointerX;
+      const dy = e.clientY - lastPointerY;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+      const scale = (frustum * 2) / container.clientHeight;
+      camera.position.x -= dx * scale;
+      camera.position.y += dy * scale;
+    }
+
+    function onPointerUp(e: PointerEvent) {
+      isDragging = false;
+      canvas.releasePointerCapture(e.pointerId);
+      canvas.style.cursor = 'grab';
+    }
+
+    canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerUp);
+
     // Render loop
     let animationId: number;
     function animate() {
@@ -61,6 +98,10 @@
     return () => {
       cancelAnimationFrame(animationId);
       resizeObserver.disconnect();
+      canvas.removeEventListener('pointerdown', onPointerDown);
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerup', onPointerUp);
+      canvas.removeEventListener('pointercancel', onPointerUp);
       renderer.dispose();
       container.removeChild(renderer.domElement);
     };
@@ -76,5 +117,6 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
+    user-select: none;
   }
 </style>
