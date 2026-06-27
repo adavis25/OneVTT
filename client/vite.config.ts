@@ -1,11 +1,16 @@
-import { defineConfig } from 'vite'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite';
+import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [
-    svelte(), 
-    tailwindcss()
+    tailwindcss(),
+    sveltekit({
+      compilerOptions: {
+        runes: ({ filename }) =>
+          filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+      }
+    })
   ],
   server: {
     proxy: {
@@ -13,4 +18,4 @@ export default defineConfig({
       '/ws': { target: 'ws://localhost:3000', ws: true }
     }
   }
-})
+});

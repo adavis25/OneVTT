@@ -7,7 +7,7 @@
   onMount(() => {
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
+    scene.background = new THREE.Color(0x000000);
 
     // Camera — orthographic for top-down 2D view
     const aspect = container.clientWidth / container.clientHeight;
