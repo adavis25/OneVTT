@@ -1,4 +1,4 @@
-# ProjectVTT
+# OneVTT
 
 A modern, web-first virtual tabletop built as a from-scratch alternative to FoundryVTT. This is a for-fun project with no deadline — the priority is doing things well and learning, not shipping fast.
 
@@ -41,7 +41,7 @@ SvelteKit file-based routing with `adapter-static` in SPA mode. `fallback: 'inde
 ```
 /           → Welcome screen (routes/+page.svelte + routes/Welcome.svelte)
 /game       → Canvas + UI game view (routes/game/+page.svelte + routes/game/Game.svelte)
-/settings   → Settings (not yet implemented)
+/settings   → Settings + component showcase (routes/settings/+page.svelte + routes/settings/Settings.svelte)
 ```
 
 Page-level components are co-located with their route files, not in `lib/`. Only shared components live in `lib/components/`.
@@ -65,7 +65,7 @@ Page-level components are co-located with their route files, not in `lib/`. Only
 ## Project structure
 
 ```
-ProjectVTT/
+OneVTT/
 ├── server/                          ← Rust backend
 │   ├── migrations/
 │   │   └── 0001_initial_schema.sql
@@ -91,18 +91,22 @@ ProjectVTT/
 │   │   │   │   │   └── SidebarRight.svelte
 │   │   │   │   └── primitives/             ← reusable building blocks
 │   │   │   ├── state/
-│   │   │   │   └── connection.svelte.ts    ← WebSocket connection + message state
+│   │   │   │   ├── connection.svelte.ts    ← WebSocket connection + message state
+│   │   │   │   └── theme.svelte.ts         ← light/dark theme state + localStorage
 │   │   │   ├── index.ts
 │   │   │   └── utils.ts                    ← cn() Tailwind class merger
 │   │   ├── routes/
+│   │   │   ├── layout.css                  ← Tailwind import, @theme tokens, :root/:dark vars
 │   │   │   ├── Welcome.svelte              ← welcome screen component
 │   │   │   ├── +page.svelte                ← / route
-│   │   │   ├── +layout.svelte              ← root layout
-│   │   │   └── game/
-│   │   │       ├── Game.svelte             ← game layout component
-│   │   │       └── +page.svelte            ← /game route, starts WebSocket
-│   │   ├── app.css                         ← Tailwind imports + CSS variables
-│   │   └── app.html
+│   │   │   ├── +layout.svelte              ← root layout (initialises theme on mount)
+│   │   │   ├── game/
+│   │   │   │   ├── Game.svelte             ← game layout component
+│   │   │   │   └── +page.svelte            ← /game route, starts WebSocket
+│   │   │   └── settings/
+│   │   │       ├── Settings.svelte         ← theme toggle + primitive showcase
+│   │   │       └── +page.svelte            ← /settings route
+│   │   └── app.html                        ← class="dark" default, no inline script needed
 │   ├── svelte.config.js                    ← adapter-static, SPA mode
 │   └── vite.config.ts                      ← Tailwind plugin, WS/API proxy
 │
@@ -144,7 +148,61 @@ Single GM running the server, remote players connecting over the internet via po
 - `onMount` is correct for one-time side effects on component mount (e.g. starting the WebSocket connection, initializing Three.js).
 - Page-level components co-locate with their route files in `src/routes/`, not in `lib/`.
 - Shared components live in `src/lib/components/` only if used by more than one route.
-- Tailwind v4 — no `tailwind.config.js`. All config via `@theme` directives in `app.css`.
+- Tailwind v4 — no `tailwind.config.js`. All config via `@theme` directives in `routes/layout.css`.
+
+### Theme system
+
+Theming uses CSS custom properties as design tokens, mapped into Tailwind utilities via `@theme` in `routes/layout.css`. Never use hardcoded Tailwind color classes (e.g. `bg-gray-900`) in UI code — always use semantic token classes so pages respond to theme changes.
+
+**Available token classes** (all follow `bg-*` / `text-*` / `border-*` / `ring-*` patterns):
+
+| Token | Purpose |
+|---|---|
+| `background` / `foreground` | Page background and primary text |
+| `card` / `card-foreground` | Elevated surfaces (panels, dialogs) |
+| `primary` / `primary-foreground` | Brand accent, primary actions |
+| `secondary` / `secondary-foreground` | Subdued interactive areas |
+| `muted` / `muted-foreground` | Placeholder text, disabled states, subtitles |
+| `accent` / `accent-foreground` | Hover states on ghost/outline elements |
+| `destructive` / `destructive-foreground` | Danger actions |
+| `border` | Dividers, input borders |
+| `input` | Input field border specifically |
+| `ring` | Focus ring color |
+
+**`--radius`** — border radius design token. Use `rounded-[var(--radius)]` in components rather than a fixed class so it can be changed globally.
+
+**Theme state** (`lib/state/theme.svelte.ts`) — call `getTheme()` to read `theme.current` (`'light' | 'dark'`) or call `theme.set(t)` / `theme.toggle()`. Persists to `localStorage` under key `pvtt-theme`. Defaults to `'dark'`. Initialisation (`theme.init()`) runs once in `+layout.svelte` on every page.
+
+**Making a new page theme-aware:** use `bg-background text-foreground` on the outermost wrapper. Use token classes for all colors — no hardcoded Tailwind palette classes.
+
+**Canvas background:** `Canvas.svelte` uses `alpha: true` on the WebGL renderer (no `scene.background`) so the canvas is transparent and the `bg-background` CSS class on its container div shows through. Do not set `scene.background` — let CSS control it.
+
+### Primitives
+
+Primitives live in `lib/components/primitives/`. Existing: `Button`, `Input`, `Label`. Follow this pattern for new ones:
+
+- Accept all native HTML element attributes by extending the relevant `HTML*Attributes` type from `svelte/elements`.
+- Destructure `class: className` and spread `...rest` onto the root element so callers can extend styles.
+- Use `cn()` (from `$lib/utils`) to merge classes. Put base styles first, variant/size maps second, `className` last.
+- If the element has a `value` that callers may want to bind, declare it as `value = $bindable()` in `$props()` and use `bind:value` on the native element.
+- Do not hardcode colors — use semantic token classes only.
+- Do not add wrapper divs unless the component genuinely needs them.
+
+Example skeleton:
+```svelte
+<script lang="ts">
+  import type { HTMLButtonAttributes } from 'svelte/elements';
+  import type { Snippet } from 'svelte';
+  import { cn } from '$lib/utils';
+
+  interface Props extends HTMLButtonAttributes { children?: Snippet }
+  let { class: className, children, ...rest }: Props = $props();
+</script>
+
+<button class={cn('/* base styles */', className)} {...rest}>
+  {@render children?.()}
+</button>
+```
 
 ### Component organization
 
@@ -178,11 +236,14 @@ Single GM running the server, remote players connecting over the internet via po
 - WebSocket endpoint at `/ws` — single broadcast channel, all connected clients receive all events. Connect/disconnect logged via `tracing`.
 - Health check at `/health` returns `ok`.
 - SvelteKit frontend running on port 5173 in dev (proxies `/api` and `/ws` to Rust server).
-- Welcome screen at `/` with GM/Player role toggle and world name input. Navigates to `/game` on submit.
-- Three.js canvas rendering at `/game` — orthographic top-down view, grid visible, `ResizeObserver` handles resize.
+- Welcome screen at `/` with GM/Player role toggle and world name input. Navigates to `/game` on submit. Uses Button, Input, Label primitives and theme tokens.
+- Three.js canvas rendering at `/game` — orthographic top-down view, 200-unit grid, `ResizeObserver` handles resize. Canvas is alpha-transparent; background comes from CSS `bg-background`. Left-drag to pan, scroll wheel to zoom toward cursor.
 - WebSocket connects on `/game` route mount via `onMount` in `+page.svelte`.
-- Sidebar work in progress — shadcn-svelte sidebar evaluated and removed due to complexity. Custom sidebar being built.
+- Theme system live — light/dark toggle in `/settings`, persisted to `localStorage`, initialised globally in `+layout.svelte`. All pages and primitives use semantic token classes.
+- Primitives implemented: `Button` (5 variants, 4 sizes), `Input` (bindable value), `Label`.
+- `/settings` page is the component showcase and theme control surface.
 - `lib/state/connection.svelte.ts` manages WebSocket connection and message state.
+- Custom sidebar not yet started (shadcn-svelte sidebar was evaluated and removed).
 - Plugin registration API (`defineSystem`) not yet implemented.
 - dnd5e schemas being drafted by collaborator.
 

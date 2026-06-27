@@ -1,5 +1,8 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import Button from '$lib/components/primitives/Button.svelte';
+  import Input from '$lib/components/primitives/Input.svelte';
+  import Label from '$lib/components/primitives/Label.svelte';
 
   type Role = 'gm' | 'player';
   let role = $state<Role>('gm');
@@ -10,69 +13,50 @@
   }
 </script>
 
-<div class="w-full min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
+<div class="w-full min-h-screen bg-background text-foreground flex items-center justify-center">
   <div class="w-full max-w-md flex flex-col gap-8 p-8">
 
     <!-- Title -->
     <div class="text-center">
-      <h1 class="text-4xl font-bold tracking-wide">Project VTT</h1>
-      <p class="text-gray-500 mt-2 text-sm">Virtual Tabletop</p>
+      <h1 class="text-4xl font-bold tracking-wide">OneVTT</h1>
+      <p class="text-muted-foreground mt-2 text-sm">Virtual Tabletop</p>
     </div>
 
     <!-- Role toggle -->
-    <div class="flex rounded-lg overflow-hidden border border-gray-800">
+    <div class="flex rounded-[var(--radius)] overflow-hidden border border-border">
       <button
         class="flex-1 py-2 text-sm font-medium transition-colors
-          {role === 'gm' ? 'bg-gray-700 text-white' : 'bg-transparent text-gray-500 hover:text-gray-300'}"
+          {role === 'gm'
+            ? 'bg-secondary text-secondary-foreground'
+            : 'bg-transparent text-muted-foreground hover:text-foreground'}"
         onclick={() => role = 'gm'}
-      >
-        Game Master
-      </button>
+      >Game Master</button>
       <button
         class="flex-1 py-2 text-sm font-medium transition-colors
-          {role === 'player' ? 'bg-gray-700 text-white' : 'bg-transparent text-gray-500 hover:text-gray-300'}"
+          {role === 'player'
+            ? 'bg-secondary text-secondary-foreground'
+            : 'bg-transparent text-muted-foreground hover:text-foreground'}"
         onclick={() => role = 'player'}
-      >
-        Player
-      </button>
+      >Player</button>
     </div>
 
     <!-- Fields -->
     {#if role === 'gm'}
-      <div class="flex flex-col gap-2">
-        <label class="text-sm text-gray-400" for="world-name">World name</label>
-        <input
-          id="world-name"
-          type="text"
-          bind:value={worldName}
-          placeholder="My Campaign"
-          class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2
-                 text-gray-100 placeholder-gray-600 focus:outline-none
-                 focus:border-gray-500 transition-colors"
-        />
+      <div class="flex flex-col gap-1.5">
+        <Label for="world-name">World name</Label>
+        <Input id="world-name" type="text" bind:value={worldName} placeholder="My Campaign" />
       </div>
     {:else}
-      <div class="flex flex-col gap-2">
-        <label class="text-sm text-gray-400" for="server-address">Server address</label>
-        <input
-          id="server-address"
-          type="text"
-          placeholder="192.168.x.x:3000"
-          class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2
-                 text-gray-100 placeholder-gray-600 focus:outline-none
-                 focus:border-gray-500 transition-colors"
-        />
+      <div class="flex flex-col gap-1.5">
+        <Label for="server-address">Server address</Label>
+        <Input id="server-address" type="text" placeholder="192.168.x.x:3000" />
       </div>
     {/if}
 
-    <!-- Enter button -->
-    <button
-      onclick={handleEnter}
-      class="w-full py-3 rounded-lg bg-gray-700 hover:bg-gray-600
-             font-medium transition-colors"
-    >
+    <!-- Enter -->
+    <Button size="lg" class="w-full" onclick={handleEnter}>
       {role === 'gm' ? 'Launch World' : 'Connect'}
-    </button>
+    </Button>
 
   </div>
 </div>

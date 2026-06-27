@@ -12,3 +12,4 @@ plugins/dnd5e/node_modules/
 # OS
 .DS_Store
 Thumbs.db
+client/.svelte-kit/
