@@ -5,9 +5,8 @@
   let container: HTMLDivElement;
 
   onMount(() => {
-    // Scene
+    // Scene — no background so CSS bg-background shows through the transparent canvas
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
 
     // Camera — orthographic for top-down 2D view
     const aspect = container.clientWidth / container.clientHeight;
@@ -24,7 +23,7 @@
     camera.lookAt(0, 0, 0);
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
@@ -145,7 +144,7 @@
   });
 </script>
 
-<div bind:this={container} class="canvas-container"></div>
+<div bind:this={container} class="canvas-container bg-background"></div>
 
 <style>
   .canvas-container {
