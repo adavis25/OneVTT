@@ -30,7 +30,7 @@
     container.appendChild(renderer.domElement);
 
     // Basic grid — 200 units, 1 unit per cell, plenty of room to pan
-    const grid = new THREE.GridHelper(200, 200, 0x444444, 0x333333);
+    const grid = new THREE.GridHelper(40, 40, 0x444444, 0x333333);
     grid.rotation.x = Math.PI / 2;
     scene.add(grid);
 
