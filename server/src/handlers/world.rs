@@ -1,6 +1,6 @@
 use crate::state::AppState;
 use axum::{
-    extract::State,
+    extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
@@ -91,6 +91,25 @@ pub async fn create_world(
                     game_system: String::new(),
                 }),
             )
+        }
+    }
+}
+
+// DELETE /api/worlds/:id — delete a world
+pub async fn delete_world(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    let result = sqlx::query!("DELETE FROM worlds WHERE id = ?", id)
+        .execute(&state.db)
+        .await;
+
+    match result {
+        Ok(r) if r.rows_affected() == 0 => StatusCode::NOT_FOUND,
+        Ok(_) => StatusCode::NO_CONTENT,
+        Err(e) => {
+            tracing::error!("Failed to delete world {}: {}", id, e);
+            StatusCode::INTERNAL_SERVER_ERROR
         }
     }
 }

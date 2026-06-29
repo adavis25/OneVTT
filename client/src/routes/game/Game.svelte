@@ -1,11 +1,14 @@
 <script lang="ts">
   import Canvas from '$lib/components/canvas/Canvas.svelte';
+  import SidebarLeft from '$lib/components/ui/SidebarLeft.svelte';
+  import SidebarRight from '$lib/components/ui/SidebarRight.svelte';
 </script>
 
 <div class="app">
   <Canvas />
   <div class="ui-layer">
-    
+    <SidebarLeft />
+    <SidebarRight />
   </div>
 </div>
 
