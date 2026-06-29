@@ -1,6 +1,6 @@
 # Rust
 server/target/
-
+server/.env
 # Node
 client/node_modules/
 client/dist/
