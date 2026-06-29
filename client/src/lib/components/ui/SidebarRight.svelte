@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Sidebar from '$lib/components/primitives/Sidebar.svelte';
+  import DropdownItem from '$lib/components/primitives/DropdownItem.svelte';
   import { cn } from '$lib/utils';
   import { getWorld } from '$lib/state/world.svelte';
   import { getConnection } from '$lib/state/connection.svelte';
@@ -19,10 +20,17 @@
     actor_type: string;
   }
 
+  interface ContextMenu {
+    x: number;
+    y: number;
+    actor: Actor;
+  }
+
   let activeTab = $state<Tab>('actors');
   let actors = $state<Actor[]>([]);
   let loadingActors = $state(false);
   let creatingActor = $state(false);
+  let contextMenu = $state<ContextMenu | null>(null);
 
   const world = getWorld();
   const conn = getConnection();
@@ -56,13 +64,27 @@
           data: {}
         })
       });
-      // list updated via actor.created broadcast below
     } finally {
       creatingActor = false;
     }
   }
 
-  // Process only new messages on each change to avoid reprocessing old ones
+  async function removeActor(id: string) {
+    contextMenu = null;
+    await fetch(`/api/actors/${id}`, { method: 'DELETE' });
+    // list updated via actor.removed broadcast below
+  }
+
+  function openContextMenu(e: MouseEvent, actor: Actor) {
+    e.preventDefault();
+    contextMenu = { x: e.clientX, y: e.clientY, actor };
+  }
+
+  function closeContextMenu() {
+    contextMenu = null;
+  }
+
+  // Process only new messages; track index to avoid reprocessing old ones
   let lastMsgCount = 0;
 
   $effect(() => {
@@ -75,12 +97,36 @@
           if (!actors.some(x => x.id === a.id)) {
             actors = [...actors, a];
           }
+        } else if (event.type === 'actor.removed') {
+          actors = actors.filter(a => a.id !== event.data.id);
         }
       } catch { /* not a JSON game event */ }
     }
     lastMsgCount = msgs.length;
   });
 </script>
+
+<svelte:window
+  onclick={closeContextMenu}
+  onkeydown={(e) => { if (e.key === 'Escape') closeContextMenu(); }}
+/>
+
+<!-- Context menu -->
+{#if contextMenu}
+  <div
+    class="fixed z-50 min-w-[8rem] overflow-hidden rounded-[var(--radius)] border border-border bg-card p-1 shadow-md"
+    style="left: {contextMenu.x}px; top: {contextMenu.y}px"
+    role="menu"
+    tabindex="-1"
+    onclick={(e) => e.stopPropagation()}
+    onkeydown={(e) => e.stopPropagation()}
+  >
+    <DropdownItem disabled>Edit</DropdownItem>
+    <DropdownItem variant="destructive" onclick={() => removeActor(contextMenu!.actor.id)}>
+      Remove
+    </DropdownItem>
+  </div>
+{/if}
 
 <Sidebar contained side="right">
   {#snippet header()}
@@ -125,7 +171,10 @@
       {:else}
         <ul class="flex flex-col">
           {#each actors as actor (actor.id)}
-            <li class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
+            <li
+              class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer select-none"
+              oncontextmenu={(e) => openContextMenu(e, actor)}
+            >
               <span class="flex-1 truncate">{actor.name}</span>
               <span class="text-xs text-muted-foreground shrink-0">{actor.actor_type}</span>
             </li>

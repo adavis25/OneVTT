@@ -1,6 +1,6 @@
 use crate::state::AppState;
 use axum::{
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
@@ -105,6 +105,29 @@ pub async fn create_actor(
                     actor_type: String::new(),
                 }),
             )
+        }
+    }
+}
+
+// DELETE /api/actors/:id
+pub async fn delete_actor(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    let result = sqlx::query!("DELETE FROM actors WHERE id = ?", id)
+        .execute(&state.db)
+        .await;
+
+    match result {
+        Ok(r) if r.rows_affected() == 0 => StatusCode::NOT_FOUND,
+        Ok(_) => {
+            let event = json!({ "type": "actor.removed", "data": { "id": id } });
+            let _ = state.tx.send(event.to_string());
+            StatusCode::NO_CONTENT
+        }
+        Err(e) => {
+            tracing::error!("Failed to delete actor {}: {}", id, e);
+            StatusCode::INTERNAL_SERVER_ERROR
         }
     }
 }
