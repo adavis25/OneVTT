@@ -42,6 +42,8 @@ async fn main() {
         .route("/api/worlds", get(handlers::world::list_worlds))
         .route("/api/worlds", post(handlers::world::create_world))
         .route("/api/worlds/:id", delete(handlers::world::delete_world))
+        .route("/api/actors", get(handlers::actors::list_actors))
+        .route("/api/actors", post(handlers::actors::create_actor))
         .nest_service(
             "/",
             ServeDir::new("../client/dist")
