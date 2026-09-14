@@ -1,8 +1,21 @@
+import type { Component } from 'svelte';
+
+export interface SidebarPanel {
+  id: string;
+  label: string;
+  component: Component;
+}
+
 export interface GameSystem {
   id: string;
   label: string;
-  ui: Record<string, unknown>;
-  dice: Record<string, unknown>;
+  ui: {
+    actorSheets: Record<string, Component>;
+    actorCreators: Record<string, Component>;
+    sidebarPanels?: SidebarPanel[];
+    diceTray?: Component;
+  };
+  dice?: unknown;
 }
 
 let activeSystem = $state<GameSystem | null>(null);

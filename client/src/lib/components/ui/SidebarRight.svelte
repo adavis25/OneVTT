@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Sidebar from '$lib/components/primitives/Sidebar.svelte';
   import DropdownItem from '$lib/components/primitives/DropdownItem.svelte';
+  import ActorSheet, { type ActorFull } from '$lib/components/ui/ActorSheet.svelte';
   import { cn } from '$lib/utils';
   import { getWorld } from '$lib/state/world.svelte';
   import { getConnection } from '$lib/state/connection.svelte';
@@ -31,6 +32,7 @@
   let loadingActors = $state(false);
   let creatingActor = $state(false);
   let contextMenu = $state<ContextMenu | null>(null);
+  let openSheet = $state<ActorFull | null>(null);
 
   const world = getWorld();
   const conn = getConnection();
@@ -69,10 +71,17 @@
     }
   }
 
+  async function openActorSheet(actor: Actor) {
+    const res = await fetch(`/api/actors/${actor.id}`);
+    if (res.ok) {
+      openSheet = await res.json() as ActorFull;
+    }
+  }
+
   async function removeActor(id: string) {
     contextMenu = null;
     await fetch(`/api/actors/${id}`, { method: 'DELETE' });
-    // list updated via actor.removed broadcast below
+    // list updated via actor.deleted broadcast below
   }
 
   function openContextMenu(e: MouseEvent, actor: Actor) {
@@ -97,8 +106,18 @@
           if (!actors.some(x => x.id === a.id)) {
             actors = [...actors, a];
           }
-        } else if (event.type === 'actor.removed') {
+        } else if (event.type === 'actor.updated') {
+          const { id, name } = event.data as { id: string; name?: string };
+          if (name != null) {
+            actors = actors.map(a => a.id === id ? { ...a, name } : a);
+          }
+          // If the open sheet is the updated actor, update it too
+          if (openSheet?.id === id && name != null) {
+            openSheet = { ...openSheet, name };
+          }
+        } else if (event.type === 'actor.deleted') {
           actors = actors.filter(a => a.id !== event.data.id);
+          if (openSheet?.id === event.data.id) openSheet = null;
         }
       } catch { /* not a JSON game event */ }
     }
@@ -108,8 +127,13 @@
 
 <svelte:window
   onclick={closeContextMenu}
-  onkeydown={(e) => { if (e.key === 'Escape') closeContextMenu(); }}
+  onkeydown={(e) => { if (e.key === 'Escape') { closeContextMenu(); if (!contextMenu) openSheet = null; } }}
 />
+
+<!-- Actor sheet modal -->
+{#if openSheet}
+  <ActorSheet actor={openSheet} onClose={() => openSheet = null} />
+{/if}
 
 <!-- Context menu -->
 {#if contextMenu}
@@ -121,7 +145,7 @@
     onclick={(e) => e.stopPropagation()}
     onkeydown={(e) => e.stopPropagation()}
   >
-    <DropdownItem disabled>Edit</DropdownItem>
+    <DropdownItem onclick={() => { openActorSheet(contextMenu!.actor); closeContextMenu(); }}>Edit</DropdownItem>
     <DropdownItem variant="destructive" onclick={() => removeActor(contextMenu!.actor.id)}>
       Remove
     </DropdownItem>
@@ -171,12 +195,15 @@
       {:else}
         <ul class="flex flex-col">
           {#each actors as actor (actor.id)}
-            <li
-              class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer select-none"
-              oncontextmenu={(e) => openContextMenu(e, actor)}
-            >
-              <span class="flex-1 truncate">{actor.name}</span>
-              <span class="text-xs text-muted-foreground shrink-0">{actor.actor_type}</span>
+            <li>
+              <button
+                class="flex items-center gap-2 px-4 py-2 w-full text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors select-none"
+                onclick={() => openActorSheet(actor)}
+                oncontextmenu={(e) => openContextMenu(e, actor)}
+              >
+                <span class="flex-1 truncate">{actor.name}</span>
+                <span class="text-xs text-muted-foreground shrink-0">{actor.actor_type}</span>
+              </button>
             </li>
           {/each}
         </ul>

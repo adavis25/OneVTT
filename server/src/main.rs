@@ -44,7 +44,10 @@ async fn main() {
         .route("/api/worlds/:id", delete(handlers::world::delete_world))
         .route("/api/actors", get(handlers::actors::list_actors))
         .route("/api/actors", post(handlers::actors::create_actor))
-        .route("/api/actors/:id", delete(handlers::actors::delete_actor))
+        .route("/api/actors/:id",
+            get(handlers::actors::get_actor)
+            .patch(handlers::actors::update_actor)
+            .delete(handlers::actors::delete_actor))
         .nest_service(
             "/",
             ServeDir::new("../client/dist")
