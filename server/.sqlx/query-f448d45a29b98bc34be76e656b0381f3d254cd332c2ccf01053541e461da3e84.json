@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE actors SET name = COALESCE(?, name), data = COALESCE(?, data), updated_at = unixepoch() WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "f448d45a29b98bc34be76e656b0381f3d254cd332c2ccf01053541e461da3e84"
+}

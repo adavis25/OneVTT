@@ -2,7 +2,7 @@ mod handlers;
 mod models;
 mod state;
 
-use axum::{routing::get, Router};
+use axum::{routing::{delete, get, post}, Router};
 use sqlx::sqlite::SqlitePoolOptions;
 use state::AppState;
 use std::env;
@@ -39,6 +39,15 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(handlers::health::health_handler))
         .route("/ws", get(handlers::ws::ws_handler))
+        .route("/api/worlds", get(handlers::world::list_worlds))
+        .route("/api/worlds", post(handlers::world::create_world))
+        .route("/api/worlds/:id", delete(handlers::world::delete_world))
+        .route("/api/actors", get(handlers::actors::list_actors))
+        .route("/api/actors", post(handlers::actors::create_actor))
+        .route("/api/actors/:id",
+            get(handlers::actors::get_actor)
+            .patch(handlers::actors::update_actor)
+            .delete(handlers::actors::delete_actor))
         .nest_service(
             "/",
             ServeDir::new("../client/dist")

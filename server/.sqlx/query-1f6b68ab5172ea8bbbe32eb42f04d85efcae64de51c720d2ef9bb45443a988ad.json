@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO actors (id, name, actor_type, data, world_id) VALUES (?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "1f6b68ab5172ea8bbbe32eb42f04d85efcae64de51c720d2ef9bb45443a988ad"
+}

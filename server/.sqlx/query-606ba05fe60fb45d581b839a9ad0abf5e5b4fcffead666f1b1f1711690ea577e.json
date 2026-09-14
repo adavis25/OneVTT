@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO worlds (id, name, game_system, db_path)\n         VALUES (?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "606ba05fe60fb45d581b839a9ad0abf5e5b4fcffead666f1b1f1711690ea577e"
+}
